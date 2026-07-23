@@ -1,0 +1,12 @@
+{
+  "name": "Hebammen-Zentrale",
+  "short_name": "Hebammen",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F8E6D1",
+  "theme_color": "#C96D57",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

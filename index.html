@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Hebammen-Zentrale</title>
+<meta name="theme-color" content="#C96D57">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/icon.svg">
+<style>
+  :root{--bg:#F8E6D1;--coral:#C96D57;--coral-d:#B2503C;--gold:#EBC24E;--gold-l:#FBEFD5;--card:#fff;--ink:#463A32;--mut:#9A8574;--line:#EBDAC6;--field:#F7F1E8;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);}
+  .hide,.hidden{display:none!important}
+  #login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .lcard{background:#fff;border-radius:18px;box-shadow:0 6px 24px rgba(70,58,50,.12);padding:28px 26px;width:100%;max-width:340px;text-align:center}
+  .lcard img{height:56px;width:auto;margin-bottom:8px}
+  .lcard h1{color:var(--coral);font-size:22px;margin:2px 0 2px}
+  .lcard p{color:var(--mut);font-size:13px;margin:0 0 18px}
+  .lcard label{display:block;text-align:left;font-size:12px;font-weight:600;color:var(--mut);margin:10px 2px 4px}
+  .lcard input{width:100%;font:inherit;border:1px solid var(--line);background:var(--field);border-radius:10px;padding:11px 12px;color:var(--ink)}
+  .lcard input:focus{outline:none;border-color:var(--coral);background:#fff}
+  .lbtn{width:100%;margin-top:18px;background:var(--coral);color:#fff;border:0;border-radius:10px;padding:12px;font-size:15px;font-weight:600;cursor:pointer}
+  .lbtn:hover{background:var(--coral-d)}
+  .link{display:inline-block;margin-top:14px;color:var(--coral-d);font-size:13px;cursor:pointer;text-decoration:underline;background:none;border:0}
+  .lmsg{margin-top:12px;font-size:12.5px;min-height:16px}
+  .lmsg.err{color:#b3371f}.lmsg.ok{color:#3b7d3b}
+  header{background:var(--coral);padding:14px 18px;}
+  .bar{max-width:1000px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand img{height:34px;width:auto;display:block}
+  .brand b{color:#fff;font-weight:700;font-size:18px;letter-spacing:.2px}
+  .hright{display:flex;align-items:center;gap:12px}
+  .sync{color:#fff;font-size:12px;opacity:.95;display:flex;align-items:center;gap:6px;white-space:nowrap}
+  .dot{width:9px;height:9px;border-radius:50%;background:#e7d7b0;display:inline-block}
+  .dot.ok{background:#8fd39a}.dot.save{background:var(--gold)}.dot.err{background:#f0a08f}
+  .logout{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:9px;padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer}
+  .logout:hover{background:rgba(255,255,255,.3)}
+  main{max-width:1000px;margin:0 auto;padding:14px 14px 40px}
+  h2{color:var(--coral);margin:14px 0 2px;font-size:18px}
+  .sub{margin:0 0 8px;color:var(--mut);font-size:13px}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
+  .tab{background:#F0DFC8;border:0;border-radius:999px;padding:9px 16px;font-size:14px;font-weight:600;color:var(--mut);cursor:pointer}
+  .tab.active{background:var(--coral);color:#fff}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px 14px;margin-top:10px}
+  .acc{background:var(--card);border:1px solid #efe3d2;border-radius:14px;margin-top:11px;overflow:hidden;box-shadow:0 1px 3px rgba(70,58,50,.07)}
+  .summary{display:grid;grid-template-columns:minmax(90px,1fr) 118px 96px 66px 16px;align-items:center;gap:10px;padding:14px 14px;cursor:pointer}
+  .summary:hover{background:#fbf5ec}
+  .summary .nm{font-size:15px;min-width:0}.summary .nm b{font-weight:600}
+  .summary .col{color:var(--ink);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .summary .chev{color:var(--coral);font-size:12px;text-align:center}
+  .details{padding:2px 14px 12px;border-top:1px solid #f2e7d7}
+  .details.hide{display:none}
+  .f{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+  .f label{font-size:12px;font-weight:600;color:var(--mut)}
+  .frow{display:flex;flex-wrap:wrap;gap:12px}
+  .frow .f{flex:1 1 150px;margin-bottom:10px}
+  input,select{font:inherit;width:100%;color:var(--ink);border:1px solid var(--line);background:var(--field);border-radius:9px;padding:9px 10px}
+  input:focus,select:focus{outline:none;border-color:var(--coral);background:#fff}
+  .todo{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f2e7d7}
+  .todo:last-child{border-bottom:0}
+  .todo.done .grow{text-decoration:line-through;color:#b7a693}
+  .todo input[type=checkbox]{width:20px;height:20px;accent-color:var(--coral);flex:0 0 auto}
+  .todo .grow{flex:1 1 auto}
+  .donehead{margin:18px 0 4px;font-size:13px;font-weight:700;color:var(--mut)}
+  .wersel{font-weight:600;width:auto;min-width:92px}
+  .wer-jule{background:#f4d9d1;color:#9c3320;border:1px solid #e3ac9e}
+  .wer-moritz{background:#f6e4b3;color:#785a10;border:1px solid #e4c56f}
+  .wer-beide{background:#dce9de;color:#356b4a;border:1px solid #b8d3bf}
+  .checks{display:flex;gap:20px;flex-wrap:wrap;margin:2px 0 12px}
+  .chk{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer}
+  .chk input[type=checkbox]{width:20px;height:20px;accent-color:var(--coral);flex:0 0 auto}
+  .acc.flag{border-color:#d98b7f;box-shadow:0 1px 5px rgba(180,80,60,.16)}
+  .acc.flag .summary{background:#fbeeeb}
+  .warn{display:inline-block;background:#f7d9d3;color:#a3341f;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;white-space:nowrap}
+  .entry-foot{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+  .del{background:transparent;border:0;color:var(--coral-d);font-size:13px;font-weight:600;cursor:pointer;padding:6px 8px;border-radius:8px;width:auto}
+  .del:hover{background:#f6ded5}
+  .btn-move{background:var(--gold-l);color:var(--coral-d);border:1px solid var(--gold);border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;width:auto}
+  .btn-move:hover{background:#f8e6bf}
+  .add{margin-top:12px;background:var(--gold-l);color:var(--coral-d);border:1px dashed var(--gold);border-radius:10px;padding:10px 14px;font-weight:600;font-size:14px;cursor:pointer;width:100%}
+  .add:hover{background:#f8e6bf}
+  .month{margin:22px 0 6px;font-size:20px;font-weight:600;color:var(--coral);display:flex;align-items:baseline;gap:10px}
+  .month:first-child{margin-top:8px}
+  .month .mcount{color:var(--mut);font-size:13px;font-weight:600}
+  .plan li{margin:6px 0;color:#5a4d43}
+  .pill{display:inline-block;background:var(--gold-l);color:#8a6d1f;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:700}
+  footer{max-width:1000px;margin:0 auto;padding:6px 16px 40px;color:var(--mut);font-size:12px;line-height:1.6}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<section id="login">
+  <div class="lcard">
+    <img src="/icon.svg" alt="Logo">
+    <h1>Hebammen-Zentrale</h1>
+    <p id="lsub">Gemeinsam und geschützt · nur für Jule und Moritz</p>
+    <label>E-Mail</label>
+    <input id="email" type="email" autocomplete="username" placeholder="name@mail.de">
+    <label>Passwort</label>
+    <input id="pass" type="password" autocomplete="current-password" placeholder="Passwort">
+    <button class="lbtn" id="lbtn">Einloggen</button>
+    <div class="lmsg" id="lmsg"></div>
+    <button class="link" id="ltoggle">Erstes Mal? Konto anlegen</button>
+  </div>
+</section>
+
+<div id="app" class="hidden">
+  <header>
+    <div class="bar">
+      <div class="brand"><img src="/icon.svg" alt=""><b>Hebammen-Zentrale</b></div>
+      <div class="hright">
+        <span class="sync"><span class="dot" id="syncdot"></span><span id="synctxt">verbinde…</span></span>
+        <button class="logout" id="logout">Abmelden</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="tabs">
+      <button class="tab active" data-action="tab" data-tab="todo">To-do</button>
+      <button class="tab" data-action="tab" data-tab="betreute">Betreute</button>
+      <button class="tab" data-action="tab" data-tab="warteliste">Warteliste</button>
+      <button class="tab" data-action="tab" data-tab="plan">Terminplaner</button>
+    </div>
+
+    <section id="tab-todo">
+      <h2>Unsere To-dos</h2>
+      <p class="sub">Wer hat welche Aufgabe. Abhaken, wenn erledigt.</p>
+      <div class="card"><div id="todo-list"></div></div>
+      <button class="add" data-action="add" data-sec="todos">＋ Aufgabe</button>
+    </section>
+
+    <section id="tab-betreute" class="hidden">
+      <h2>Betreute</h2>
+      <p class="sub">Nach Geburtstermin-Monat. Rot = Vorgespräch offen. Klick öffnet die Karte.</p>
+      <div id="betreute-list"></div>
+      <button class="add" data-action="add" data-sec="betreute">＋ Betreute hinzufügen</button>
+    </section>
+
+    <section id="tab-warteliste" class="hidden">
+      <h2>Warteliste</h2>
+      <p class="sub">Passt eine Anfrage, mit „Zu Betreute übertragen" übernehmen.</p>
+      <div id="warteliste-list"></div>
+      <button class="add" data-action="add" data-sec="warteliste">＋ Anfrage hinzufügen</button>
+    </section>
+
+    <section id="tab-plan" class="hidden">
+      <div class="card">
+        <h2>Terminplaner <span class="pill">kommt</span></h2>
+        <p class="sub">Hier wandert der Hebammen-Terminplaner rein: für eine Frau + Terminart den nächsten passenden Termin finden. Adressen/Routing bleiben lokal bei Moritz.</p>
+      </div>
+    </section>
+  </main>
+  <footer>
+    Geschützt: Zugang nur mit Login, nur freigeschaltete Konten sehen die Daten. Änderungen werden automatisch gespeichert und synchronisieren sich live zwischen euren Geräten. Online liegen nur zensierte Angaben (Initialen statt Namen, keine Adresse).
+  </footer>
+</div>
+
+<script>
+  var CFG={apiKey:"AIzaSyCds45xX5G-a5UJRuPd1aAkLzRC2fdGCXc",authDomain:"hebammen-zentrale.firebaseapp.com",projectId:"hebammen-zentrale",storageBucket:"hebammen-zentrale.firebasestorage.app",messagingSenderId:"668819182913",appId:"1:668819182913:web:771806f0e4c2c4fe513dc0"};
+  firebase.initializeApp(CFG);
+  var auth=firebase.auth(), db=firebase.firestore();
+  var DOC=db.collection('app').doc('shared');
+
+  var KINDS=['','1','2','3','4','5','6','7','8'];
+  var VERS=['gesetzlich','privat'];
+  var STATUS=['neu','hingehalten','zugesagt','in Betreuung','abgeschlossen','abgesagt'];
+  var MONTHS=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+
+  var DATA={betreute:[],warteliste:[],todos:[],meta:{}};
+  var unsub=null, saveTimer=null, editing=null, pendingRender={}, openCards={}, me='', signup=false, loaded=false;
+
+  function esc(s){return (s==null?'':(''+s)).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function $(id){return document.getElementById(id);}
+  function opts(list,val){var h='';list.forEach(function(o){var lab=(o===''?'—':o);h+='<option value="'+esc(o)+'"'+(o===val?' selected':'')+'>'+esc(lab)+'</option>';});return h;}
+  function etText(et){ if(!et) return 'GT offen'; var p=(''+et).split('-'); return (p.length===3)?('GT '+p[2]+'.'+p[1]+'.'+p[0]):('GT '+et); }
+  function monthKey(et){ if(!et) return 'zzzz'; var p=(''+et).split('-'); return (p.length>=2 && p[0] && p[1])?(p[0]+'-'+p[1]):'zzzz'; }
+  function monthLabel(k){ if(k==='zzzz') return 'Ohne Geburtstermin'; var p=k.split('-'); var m=parseInt(p[1],10); return (MONTHS[m-1]||p[1])+' '+p[0]; }
+  function find(sec,id){ var a=DATA[sec]; for(var i=0;i<a.length;i++){ if(a[i].id===id) return a[i]; } return null; }
+
+  auth.onAuthStateChanged(function(u){
+    if(u){ me=u.email; $('login').classList.add('hidden'); $('app').classList.remove('hidden'); startSync(); }
+    else { me=''; stopSync(); loaded=false; $('app').classList.add('hidden'); $('login').classList.remove('hidden'); }
+  });
+  function setMsg(t,cls){ var m=$('lmsg'); m.textContent=t||''; m.className='lmsg'+(cls?(' '+cls):''); }
+  function doAuth(){
+    var em=($('email').value||'').trim(), pw=$('pass').value||'';
+    if(!em||!pw){ setMsg('Bitte E-Mail und Passwort eingeben.','err'); return; }
+    setMsg('…','');
+    var p = signup ? auth.createUserWithEmailAndPassword(em,pw) : auth.signInWithEmailAndPassword(em,pw);
+    p.catch(function(e){ setMsg(errText(e),'err'); });
+  }
+  function errText(e){
+    var c=e&&e.code?e.code:'';
+    if(c.indexOf('wrong-password')>-1||c.indexOf('invalid-credential')>-1) return 'Passwort oder E-Mail falsch.';
+    if(c.indexOf('user-not-found')>-1) return 'Kein Konto mit dieser E-Mail. Erst „Konto anlegen".';
+    if(c.indexOf('email-already-in-use')>-1) return 'Konto existiert schon — bitte einloggen.';
+    if(c.indexOf('weak-password')>-1) return 'Passwort zu kurz (mind. 6 Zeichen).';
+    if(c.indexOf('permission')>-1) return 'Diese E-Mail ist nicht freigeschaltet.';
+    return 'Fehler: '+(c||'unbekannt');
+  }
+  $('lbtn').addEventListener('click',doAuth);
+  $('pass').addEventListener('keydown',function(e){ if(e.key==='Enter') doAuth(); });
+  $('ltoggle').addEventListener('click',function(){
+    signup=!signup;
+    $('lbtn').textContent=signup?'Konto anlegen':'Einloggen';
+    $('ltoggle').textContent=signup?'Schon ein Konto? Einloggen':'Erstes Mal? Konto anlegen';
+    $('lsub').textContent=signup?'Neues Konto mit deiner freigeschalteten E-Mail':'Gemeinsam und geschützt · nur für Jule und Moritz';
+    setMsg('','');
+  });
+  $('logout').addEventListener('click',function(){ try{auth.signOut();}catch(e){} });
+
+  function setSync(s){
+    var d=$('syncdot'), t=$('synctxt'); if(!d) return;
+    var map={ok:['ok','Alle Geräte synchron'],save:['save','speichert…'],err:['err','Sync-Fehler'],conn:['','verbinde…']};
+    var m=map[s]||map.conn; d.className='dot '+(m[0]||''); t.textContent=m[1];
+  }
+  function startSync(){
+    stopSync(); setSync('conn');
+    unsub=DOC.onSnapshot(function(snap){
+      var d=snap.exists?snap.data():{};
+      var incoming={betreute:d.betreute||[],warteliste:d.warteliste||[],todos:d.todos||[],meta:d.meta||{}};
+      // keep the item currently being edited from being overwritten mid-typing
+      if(editing){
+        var cur=find(editing.sec,editing.id);
+        if(cur){
+          var arr=incoming[editing.sec];
+          for(var i=0;i<arr.length;i++){ if(arr[i].id===editing.id){ arr[i]=cur; break; } }
+        }
+      }
+      DATA=incoming; loaded=true;
+      if(editing){ pendingRender.todo=pendingRender.betreute=pendingRender.warteliste=true; }
+      else { renderAll(); }
+      setSync('ok');
+    }, function(err){ setSync('err'); });
+  }
+  function stopSync(){ if(unsub){ try{unsub();}catch(e){} unsub=null; } }
+
+  function queueSave(){ clearTimeout(saveTimer); setSync('save'); saveTimer=setTimeout(saveNow,500); }
+  function saveNow(){
+    if(!loaded){ return; }
+    DATA.meta={updated:Date.now(),by:me};
+    setSync('save');
+    DOC.set({betreute:DATA.betreute,warteliste:DATA.warteliste,todos:DATA.todos,meta:DATA.meta},{merge:true})
+      .then(function(){ setSync('ok'); }).catch(function(){ setSync('err'); });
+  }
+
+  function addItem(sec){
+    var id=(sec.charAt(0))+Date.now()+Math.floor(Math.random()*1000);
+    if(sec==='todos') DATA.todos.push({id:id,text:'',wer:'Beide',done:false});
+    else if(sec==='warteliste'){ DATA.warteliste.push({id:id,initials:'',et:'',kind:'',vers:'gesetzlich',status:'neu',notiz:''}); openCards[id]=true; }
+    else { DATA.betreute.push({id:id,initials:'',et:'',kind:'',vers:'gesetzlich',status:'in Betreuung',vg:false,bt:false,notiz:''}); openCards[id]=true; }
+    saveNow(); renderAll();
+  }
+  function delItem(sec,id){
+    if(!confirm('Diesen Eintrag wirklich löschen? Das lässt sich nicht rückgängig machen.')) return;
+    DATA[sec]=DATA[sec].filter(function(x){return x.id!==id;}); saveNow(); renderAll();
+  }
+  function transfer(id){
+    var w=find('warteliste',id); if(!w) return;
+    if(!confirm('Diese Anfrage in die Betreuten übernehmen? Sie wird aus der Warteliste entfernt.')) return;
+    var nid='b'+Date.now()+Math.floor(Math.random()*1000);
+    DATA.betreute.push({id:nid,initials:w.initials||'',et:w.et||'',kind:w.kind||'',vers:w.vers||'gesetzlich',status:'in Betreuung',vg:false,bt:false,notiz:w.notiz||''});
+    DATA.warteliste=DATA.warteliste.filter(function(x){return x.id!==id;});
+    openCards[nid]=true; saveNow(); renderAll(); showTab('betreute');
+  }
+
+  function onEdit(e){
+    var el=e.target, ds=el.dataset;
+    if(!ds || !ds.sec || !ds.field) return;
+    var it=find(ds.sec,ds.id); if(!it) return;
+    it[ds.field]=(el.type==='checkbox')?el.checked:el.value;
+    if(ds.sec==='todos' && ds.field==='done'){ it.doneAt = it.done?Date.now():0; }
+    queueSave();
+    if(ds.sec==='betreute' || ds.sec==='warteliste'){ refreshSummary(ds.sec, ds.id); }
+    if(ds.sec==='todos' && (ds.field==='done'||ds.field==='wer')){ pendingRender.todo=true; }
+  }
+  document.addEventListener('input', onEdit);
+  document.addEventListener('change', onEdit);
+  document.addEventListener('focusin', function(e){ var ds=e.target.dataset; if(ds && ds.sec && ds.id){ editing={sec:ds.sec,id:ds.id,field:ds.field}; } });
+  document.addEventListener('focusout', function(e){
+    var ds=e.target.dataset; editing=null;
+    setTimeout(function(){
+      if(editing) return;
+      if(pendingRender.todo||pendingRender.betreute||pendingRender.warteliste){ pendingRender={}; renderAll(); }
+    },0);
+  });
+  document.addEventListener('click', function(e){
+    var a=e.target.closest('[data-action]'); if(!a) return;
+    var act=a.getAttribute('data-action');
+    if(act==='tab') showTab(a.getAttribute('data-tab'));
+    else if(act==='add') addItem(a.getAttribute('data-sec'));
+    else if(act==='del') delItem(a.getAttribute('data-sec'),a.getAttribute('data-id'));
+    else if(act==='toggle') toggleCard(a.getAttribute('data-id'));
+    else if(act==='transfer') transfer(a.getAttribute('data-id'));
+  });
+
+  function showTab(name){
+    ['todo','betreute','warteliste','plan'].forEach(function(n){ $('tab-'+n).classList.toggle('hidden',n!==name); });
+    var tabs=document.querySelectorAll('.tab'); for(var i=0;i<tabs.length;i++){ tabs[i].classList.toggle('active',tabs[i].getAttribute('data-tab')===name); }
+  }
+  function toggleCard(id){ openCards[id]=!openCards[id]; renderAll(); }
+
+  function summaryName(x){ return '<b>'+(esc(x.initials)||'—')+'</b>'; }
+  function todoRow(t){
+    return '<div class="todo'+(t.done?' done':'')+'">'
+      +'<input type="checkbox" data-sec="todos" data-id="'+t.id+'" data-field="done"'+(t.done?' checked':'')+'>'
+      +'<input class="grow" data-sec="todos" data-id="'+t.id+'" data-field="text" value="'+esc(t.text)+'" placeholder="Aufgabe…">'
+      +'<select class="wersel wer-'+esc((''+(t.wer||'')).toLowerCase())+'" data-sec="todos" data-id="'+t.id+'" data-field="wer">'+opts(['Jule','Moritz','Beide'],t.wer)+'</select>'
+      +'<button class="del" data-action="del" data-sec="todos" data-id="'+t.id+'">Löschen</button>'
+    +'</div>';
+  }
+  function renderTodos(){
+    var open=DATA.todos.filter(function(t){return !t.done;});
+    var done=DATA.todos.filter(function(t){return t.done;});
+    done.sort(function(a,b){return (b.doneAt||0)-(a.doneAt||0);});
+    var html=open.map(todoRow).join('');
+    if(!open.length && !done.length) html='<p class="sub">Noch keine Aufgabe.</p>';
+    if(done.length) html+='<div class="donehead">Erledigt</div>'+done.map(todoRow).join('');
+    $('todo-list').innerHTML=html;
+  }
+  function entryCard(sec,x){
+    var open=!!openCards[x.id];
+    var flag=(sec==='betreute' && !x.vg);
+    var checks=(sec==='betreute')
+      ? '<div class="checks"><label class="chk"><input type="checkbox" data-sec="betreute" data-id="'+x.id+'" data-field="vg"'+(x.vg?' checked':'')+'> Vorgespräch</label><label class="chk"><input type="checkbox" data-sec="betreute" data-id="'+x.id+'" data-field="bt"'+(x.bt?' checked':'')+'> Betreuung</label></div>'
+      : '';
+    var foot=(sec==='warteliste'?'<button class="btn-move" data-action="transfer" data-id="'+x.id+'">Zu Betreute übertragen</button>':'')
+      +'<button class="del" data-action="del" data-sec="'+sec+'" data-id="'+x.id+'">Eintrag löschen</button>';
+    return '<div class="acc'+(flag?' flag':'')+'" data-eid="'+x.id+'">'
+      +'<div class="summary" data-action="toggle" data-id="'+x.id+'"><span class="nm">'+summaryName(x)+(flag?' <span class="warn">Vorgespräch offen</span>':'')+'</span><span class="col">'+etText(x.et)+'</span><span class="col">'+esc(x.vers)+'</span><span class="col">'+(x.kind?esc(x.kind)+'. Kind':'')+'</span><span class="chev">'+(open?'▾':'▸')+'</span></div>'
+      +'<div class="details'+(open?'':' hide')+'">'
+        +'<div class="f"><label>Initialen</label><input data-sec="'+sec+'" data-id="'+x.id+'" data-field="initials" value="'+esc(x.initials)+'" placeholder="z. B. A. B."></div>'
+        +'<div class="frow"><div class="f"><label>Geburtstermin</label><input type="date" data-sec="'+sec+'" data-id="'+x.id+'" data-field="et" value="'+esc(x.et)+'"></div>'
+        +'<div class="f"><label>Wievielte Kind</label><select data-sec="'+sec+'" data-id="'+x.id+'" data-field="kind">'+opts(KINDS,x.kind)+'</select></div>'
+        +'<div class="f"><label>Versicherung</label><select data-sec="'+sec+'" data-id="'+x.id+'" data-field="vers">'+opts(VERS,x.vers)+'</select></div></div>'
+        +checks
+        +'<div class="frow"><div class="f"><label>Status</label><select data-sec="'+sec+'" data-id="'+x.id+'" data-field="status">'+opts(STATUS,x.status)+'</select></div></div>'
+        +'<div class="f"><label>Notiz</label><input data-sec="'+sec+'" data-id="'+x.id+'" data-field="notiz" value="'+esc(x.notiz)+'" placeholder="Notiz"></div>'
+        +'<div class="entry-foot">'+foot+'</div>'
+      +'</div>'
+    +'</div>';
+  }
+  function renderGrouped(elId,sec){
+    var groups={};
+    DATA[sec].forEach(function(x){ var k=monthKey(x.et); (groups[k]=groups[k]||[]).push(x); });
+    var keys=Object.keys(groups).sort();
+    var html='';
+    keys.forEach(function(k){
+      groups[k].sort(function(a,c){ return (''+(a.et||'')).localeCompare(''+(c.et||'')); });
+      html+='<div class="month">'+esc(monthLabel(k))+' <span class="mcount">'+groups[k].length+'</span></div>';
+      html+=groups[k].map(function(x){return entryCard(sec,x);}).join('');
+    });
+    $(elId).innerHTML = html || '<p class="sub">Noch nichts eingetragen.</p>';
+  }
+  function renderAll(){ renderTodos(); renderGrouped('betreute-list','betreute'); renderGrouped('warteliste-list','warteliste'); }
+  function refreshSummary(sec,id){
+    var it=find(sec,id); if(!it) return;
+    var entry=document.querySelector('.acc[data-eid="'+id+'"]'); if(!entry) return;
+    var flag=(sec==='betreute' && !it.vg);
+    entry.classList.toggle('flag',flag);
+    var nm=entry.querySelector('.nm'); if(nm) nm.innerHTML=summaryName(it)+(flag?' <span class="warn">Vorgespräch offen</span>':'');
+    var cols=entry.querySelectorAll('.summary .col');
+    if(cols[0]) cols[0].textContent=etText(it.et);
+    if(cols[1]) cols[1].textContent=it.vers;
+    if(cols[2]) cols[2].textContent=(it.kind?it.kind+'. Kind':'');
+  }
+
+  if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw.js').catch(function(){}); }
+</script>
+</body>
+</html>
