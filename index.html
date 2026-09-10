@@ -50,6 +50,10 @@
   .summary .nm{font-size:15px;min-width:0}.summary .nm b{font-weight:600}
   .summary .col{color:var(--ink);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .summary .chev{color:var(--coral);font-size:12px;text-align:center}
+  @media(max-width:560px){
+    .summary{grid-template-columns:1fr 104px 16px;gap:6px}
+    .c-vers,.c-kind{display:none}
+  }
   .details{padding:2px 14px 12px;border-top:1px solid #f2e7d7}
   .details.hide{display:none}
   .f{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
@@ -58,11 +62,16 @@
   .frow .f{flex:1 1 150px;margin-bottom:10px}
   input,select{font:inherit;width:100%;color:var(--ink);border:1px solid var(--line);background:var(--field);border-radius:9px;padding:9px 10px}
   input:focus,select:focus{outline:none;border-color:var(--coral);background:#fff}
+  .fin{display:flex;gap:6px;align-items:stretch}
+  .fin input{flex:1 1 auto;width:auto;min-width:0}
+  .cp{flex:0 0 auto;width:42px;border:1px solid var(--line);background:var(--field);border-radius:9px;color:var(--mut);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .cp:hover{border-color:var(--coral);color:var(--coral)}
+  .cp.ok{background:#e7f3d8;border-color:#c0dd97;color:#3b6d11}
   .todo{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f2e7d7}
   .todo:last-child{border-bottom:0}
   .todo.done .grow{text-decoration:line-through;color:#b7a693}
   .todo input[type=checkbox]{width:20px;height:20px;accent-color:var(--coral);flex:0 0 auto}
-  .todo .grow{flex:1 1 auto}
+  .todo .grow{flex:1 1 auto;min-width:0}
   .donehead{margin:18px 0 4px;font-size:13px;font-weight:700;color:var(--mut)}
   .wersel{font-weight:600;width:auto;min-width:92px}
   .wer-jule{background:#f4d9d1;color:#9c3320;border:1px solid #e3ac9e}
@@ -136,7 +145,7 @@
 
     <section id="tab-betreute" class="hidden">
       <h2>Betreute</h2>
-      <p class="sub">Nach Geburtstermin-Monat. Rot = Vorgespräch offen. Klick öffnet die Karte.</p>
+      <p class="sub">Nach Geburtstermin-Monat. Rot = Vorgespräch offen. Klick öffnet die volle Karte.</p>
       <div id="betreute-list"></div>
       <button class="add" data-action="add" data-sec="betreute">＋ Betreute hinzufügen</button>
     </section>
@@ -151,12 +160,12 @@
     <section id="tab-plan" class="hidden">
       <div class="card">
         <h2>Terminplaner <span class="pill">kommt</span></h2>
-        <p class="sub">Hier wandert der Hebammen-Terminplaner rein: für eine Frau + Terminart den nächsten passenden Termin finden. Adressen/Routing bleiben lokal bei Moritz.</p>
+        <p class="sub">Hier wandert der Hebammen-Terminplaner rein: für eine Frau + Terminart den nächsten passenden Termin finden.</p>
       </div>
     </section>
   </main>
   <footer>
-    Geschützt: Zugang nur mit Login, nur freigeschaltete Konten sehen die Daten. Änderungen werden automatisch gespeichert und synchronisieren sich live zwischen euren Geräten. Online liegen nur zensierte Angaben (Initialen statt Namen, keine Adresse).
+    Zugang nur mit Login — nur die freigeschalteten Konten sehen die Daten. Änderungen werden automatisch gespeichert und synchronisieren sich live zwischen allen Geräten. Hier stehen die <b>vollständigen</b> Daten inklusive Namen, Adresse und Kontakt.
   </footer>
 </div>
 
@@ -172,11 +181,11 @@
   var MONTHS=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 
   var DATA={betreute:[],warteliste:[],todos:[],meta:{}};
-  var unsub=null, saveTimer=null, editing=null, pendingRender={}, openCards={}, me='', signup=false, loaded=false;
+  var unsub=null, saveTimer=null, editing=null, pendingRender=false, openCards={}, me='', signup=false, loaded=false;
 
   function esc(s){return (s==null?'':(''+s)).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
   function $(id){return document.getElementById(id);}
-  function opts(list,val){var h='';list.forEach(function(o){var lab=(o===''?'—':o);h+='<option value="'+esc(o)+'"'+(o===val?' selected':'')+'>'+esc(lab)+'</option>';});return h;}
+  function opts(arr,val){var h='';arr.forEach(function(o){var lab=(o===''?'—':o);h+='<option value="'+esc(o)+'"'+(o===val?' selected':'')+'>'+esc(lab)+'</option>';});return h;}
   function etText(et){ if(!et) return 'GT offen'; var p=(''+et).split('-'); return (p.length===3)?('GT '+p[2]+'.'+p[1]+'.'+p[0]):('GT '+et); }
   function monthKey(et){ if(!et) return 'zzzz'; var p=(''+et).split('-'); return (p.length>=2 && p[0] && p[1])?(p[0]+'-'+p[1]):'zzzz'; }
   function monthLabel(k){ if(k==='zzzz') return 'Ohne Geburtstermin'; var p=k.split('-'); var m=parseInt(p[1],10); return (MONTHS[m-1]||p[1])+' '+p[0]; }
@@ -224,7 +233,6 @@
     unsub=DOC.onSnapshot(function(snap){
       var d=snap.exists?snap.data():{};
       var incoming={betreute:d.betreute||[],warteliste:d.warteliste||[],todos:d.todos||[],meta:d.meta||{}};
-      // keep the item currently being edited from being overwritten mid-typing
       if(editing){
         var cur=find(editing.sec,editing.id);
         if(cur){
@@ -233,8 +241,7 @@
         }
       }
       DATA=incoming; loaded=true;
-      if(editing){ pendingRender.todo=pendingRender.betreute=pendingRender.warteliste=true; }
-      else { renderAll(); }
+      if(editing){ pendingRender=true; } else { renderAll(); }
       setSync('ok');
     }, function(err){ setSync('err'); });
   }
@@ -249,11 +256,15 @@
       .then(function(){ setSync('ok'); }).catch(function(){ setSync('err'); });
   }
 
+  function newEntry(sec,id){
+    var o={id:id,vorname:'',nachname:'',email:'',telefon:'',adresse:'',et:'',kind:'',vers:'gesetzlich',status:(sec==='warteliste'?'neu':'in Betreuung'),notiz:''};
+    if(sec==='betreute'){ o.vg=false; o.bt=false; }
+    return o;
+  }
   function addItem(sec){
     var id=(sec.charAt(0))+Date.now()+Math.floor(Math.random()*1000);
     if(sec==='todos') DATA.todos.push({id:id,text:'',wer:'Beide',done:false});
-    else if(sec==='warteliste'){ DATA.warteliste.push({id:id,initials:'',et:'',kind:'',vers:'gesetzlich',status:'neu',notiz:''}); openCards[id]=true; }
-    else { DATA.betreute.push({id:id,initials:'',et:'',kind:'',vers:'gesetzlich',status:'in Betreuung',vg:false,bt:false,notiz:''}); openCards[id]=true; }
+    else { DATA[sec].push(newEntry(sec,id)); openCards[id]=true; }
     saveNow(); renderAll();
   }
   function delItem(sec,id){
@@ -264,7 +275,8 @@
     var w=find('warteliste',id); if(!w) return;
     if(!confirm('Diese Anfrage in die Betreuten übernehmen? Sie wird aus der Warteliste entfernt.')) return;
     var nid='b'+Date.now()+Math.floor(Math.random()*1000);
-    DATA.betreute.push({id:nid,initials:w.initials||'',et:w.et||'',kind:w.kind||'',vers:w.vers||'gesetzlich',status:'in Betreuung',vg:false,bt:false,notiz:w.notiz||''});
+    DATA.betreute.push({id:nid,vorname:w.vorname||'',nachname:w.nachname||'',email:w.email||'',telefon:w.telefon||'',adresse:w.adresse||'',
+      et:w.et||'',kind:w.kind||'',vers:w.vers||'gesetzlich',status:'in Betreuung',vg:false,bt:false,notiz:w.notiz||''});
     DATA.warteliste=DATA.warteliste.filter(function(x){return x.id!==id;});
     openCards[nid]=true; saveNow(); renderAll(); showTab('betreute');
   }
@@ -277,16 +289,16 @@
     if(ds.sec==='todos' && ds.field==='done'){ it.doneAt = it.done?Date.now():0; }
     queueSave();
     if(ds.sec==='betreute' || ds.sec==='warteliste'){ refreshSummary(ds.sec, ds.id); }
-    if(ds.sec==='todos' && (ds.field==='done'||ds.field==='wer')){ pendingRender.todo=true; }
+    if(ds.sec==='todos' && (ds.field==='done'||ds.field==='wer')){ pendingRender=true; }
   }
   document.addEventListener('input', onEdit);
   document.addEventListener('change', onEdit);
   document.addEventListener('focusin', function(e){ var ds=e.target.dataset; if(ds && ds.sec && ds.id){ editing={sec:ds.sec,id:ds.id,field:ds.field}; } });
-  document.addEventListener('focusout', function(e){
-    var ds=e.target.dataset; editing=null;
+  document.addEventListener('focusout', function(){
+    editing=null;
     setTimeout(function(){
       if(editing) return;
-      if(pendingRender.todo||pendingRender.betreute||pendingRender.warteliste){ pendingRender={}; renderAll(); }
+      if(pendingRender){ pendingRender=false; renderAll(); }
     },0);
   });
   document.addEventListener('click', function(e){
@@ -297,6 +309,7 @@
     else if(act==='del') delItem(a.getAttribute('data-sec'),a.getAttribute('data-id'));
     else if(act==='toggle') toggleCard(a.getAttribute('data-id'));
     else if(act==='transfer') transfer(a.getAttribute('data-id'));
+    else if(act==='copy') copyField(a);
   });
 
   function showTab(name){
@@ -305,7 +318,25 @@
   }
   function toggleCard(id){ openCards[id]=!openCards[id]; renderAll(); }
 
-  function summaryName(x){ return '<b>'+(esc(x.initials)||'—')+'</b>'; }
+  function copyField(btn){
+    var inp=btn.parentElement.querySelector('input,select'); if(!inp) return;
+    var val=inp.value||'';
+    if(inp.type==='date' && /^\d{4}-\d{2}-\d{2}$/.test(val)){ var p=val.split('-'); val=p[2]+'.'+p[1]+'.'+p[0]; }
+    var ok=false;
+    try{ var ta=document.createElement('textarea'); ta.value=val; ta.style.position='fixed'; ta.style.top='-1000px'; document.body.appendChild(ta); ta.focus(); ta.select(); ok=document.execCommand('copy'); document.body.removeChild(ta); }catch(e){ ok=false; }
+    if(!ok && navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(val); }
+    btn.classList.add('ok'); setTimeout(function(){ btn.classList.remove('ok'); },900);
+  }
+  function copyBtn(){ return '<button type="button" class="cp" data-action="copy" title="Kopieren" aria-label="Kopieren"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg></button>'; }
+  function fField(label,sec,id,field,val,ph){ return '<div class="f"><label>'+esc(label)+'</label><div class="fin"><input data-sec="'+sec+'" data-id="'+id+'" data-field="'+field+'" value="'+esc(val)+'" placeholder="'+esc(ph)+'">'+copyBtn()+'</div></div>'; }
+  function fDate(label,sec,id,field,val){ return '<div class="f"><label>'+esc(label)+'</label><div class="fin"><input type="date" data-sec="'+sec+'" data-id="'+id+'" data-field="'+field+'" value="'+esc(val)+'">'+copyBtn()+'</div></div>'; }
+  function fSelect(label,sec,id,field,arr,val){ return '<div class="f"><label>'+esc(label)+'</label><select data-sec="'+sec+'" data-id="'+id+'" data-field="'+field+'">'+opts(arr,val)+'</select></div>'; }
+
+  function summaryName(x){
+    var v=(x.vorname||'').trim(), n=(x.nachname||'').trim();
+    if(v||n) return '<b>'+esc(v||'—')+'</b>'+(n?' '+esc(n):'');
+    return '<b>'+(esc(x.initials)||'—')+'</b>';
+  }
   function todoRow(t){
     return '<div class="todo'+(t.done?' done':'')+'">'
       +'<input type="checkbox" data-sec="todos" data-id="'+t.id+'" data-field="done"'+(t.done?' checked':'')+'>'
@@ -332,15 +363,15 @@
     var foot=(sec==='warteliste'?'<button class="btn-move" data-action="transfer" data-id="'+x.id+'">Zu Betreute übertragen</button>':'')
       +'<button class="del" data-action="del" data-sec="'+sec+'" data-id="'+x.id+'">Eintrag löschen</button>';
     return '<div class="acc'+(flag?' flag':'')+'" data-eid="'+x.id+'">'
-      +'<div class="summary" data-action="toggle" data-id="'+x.id+'"><span class="nm">'+summaryName(x)+(flag?' <span class="warn">Vorgespräch offen</span>':'')+'</span><span class="col">'+etText(x.et)+'</span><span class="col">'+esc(x.vers)+'</span><span class="col">'+(x.kind?esc(x.kind)+'. Kind':'')+'</span><span class="chev">'+(open?'▾':'▸')+'</span></div>'
+      +'<div class="summary" data-action="toggle" data-id="'+x.id+'"><span class="nm">'+summaryName(x)+(flag?' <span class="warn">Vorgespräch offen</span>':'')+'</span><span class="col c-et">'+etText(x.et)+'</span><span class="col c-vers">'+esc(x.vers)+'</span><span class="col c-kind">'+(x.kind?esc(x.kind)+'. Kind':'')+'</span><span class="chev">'+(open?'▾':'▸')+'</span></div>'
       +'<div class="details'+(open?'':' hide')+'">'
-        +'<div class="f"><label>Initialen</label><input data-sec="'+sec+'" data-id="'+x.id+'" data-field="initials" value="'+esc(x.initials)+'" placeholder="z. B. A. B."></div>'
-        +'<div class="frow"><div class="f"><label>Geburtstermin</label><input type="date" data-sec="'+sec+'" data-id="'+x.id+'" data-field="et" value="'+esc(x.et)+'"></div>'
-        +'<div class="f"><label>Wievielte Kind</label><select data-sec="'+sec+'" data-id="'+x.id+'" data-field="kind">'+opts(KINDS,x.kind)+'</select></div>'
-        +'<div class="f"><label>Versicherung</label><select data-sec="'+sec+'" data-id="'+x.id+'" data-field="vers">'+opts(VERS,x.vers)+'</select></div></div>'
+        +'<div class="frow">'+fField('Vorname',sec,x.id,'vorname',x.vorname||'','Vorname')+fField('Nachname',sec,x.id,'nachname',x.nachname||'','Nachname')+'</div>'
+        +'<div class="frow">'+fField('E-Mail',sec,x.id,'email',x.email||'','name@mail.de')+fField('Telefon',sec,x.id,'telefon',x.telefon||'','Telefonnummer')+'</div>'
+        +fField('Wohnadresse',sec,x.id,'adresse',x.adresse||'','Straße Hausnr., PLZ Ort')
+        +'<div class="frow">'+fDate('Geburtstermin',sec,x.id,'et',x.et||'')+fSelect('Wievielte Kind',sec,x.id,'kind',KINDS,x.kind)+fSelect('Versicherung',sec,x.id,'vers',VERS,x.vers)+'</div>'
         +checks
-        +'<div class="frow"><div class="f"><label>Status</label><select data-sec="'+sec+'" data-id="'+x.id+'" data-field="status">'+opts(STATUS,x.status)+'</select></div></div>'
-        +'<div class="f"><label>Notiz</label><input data-sec="'+sec+'" data-id="'+x.id+'" data-field="notiz" value="'+esc(x.notiz)+'" placeholder="Notiz"></div>'
+        +'<div class="frow">'+fSelect('Status',sec,x.id,'status',STATUS,x.status)+'</div>'
+        +fField('Notiz',sec,x.id,'notiz',x.notiz||'','Notiz')
         +'<div class="entry-foot">'+foot+'</div>'
       +'</div>'
     +'</div>';
